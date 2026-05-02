@@ -1,0 +1,97 @@
+"""
+Green Match view.
+"""
+import hashlib
+import json
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from django.core.cache import cache
+
+from drf_spectacular.utils import extend_schema, OpenApiExample
+
+from apps.plants.models import Plant
+from apps.plants.serializers import PlantSerializer
+
+from .models import MatchSession
+from .serializers import (
+    GreenMatchInputSerializer,
+    GreenMatchResponseSerializer,
+)
+from .services import enrich_location, score_plants
+
+
+CACHE_TTL_SECONDS = 60 * 60 * 24  # 24 hours
+TOP_N = 10
+
+
+class GreenMatchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=['Green Match'],
+        summary='Recommend native African plants for a user plot',
+        request=GreenMatchInputSerializer,
+        responses={200: GreenMatchResponseSerializer},
+        examples=[
+            OpenApiExample(
+                'Nairobi loamy garden',
+                value={
+                    'location': 'Nairobi, Kenya',
+                    'sun_exposure': 'full_sun',
+                    'soil_condition': 'loamy',
+                    'water_conservation': 'low',
+                },
+                request_only=True,
+            ),
+        ],
+    )
+    def post(self, request):
+        serializer = GreenMatchInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Cache key = hash of inputs. Same inputs → same payload for 24h.
+        cache_key = 'gm:' + hashlib.md5(
+            json.dumps(data, sort_keys=True).encode()
+        ).hexdigest()
+
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        geo = enrich_location(data['location'])
+
+        plants = list(Plant.objects.all())
+        ranked = score_plants(
+            plants,
+            climate_zone=geo['climate_zone'],
+            sun_exposure=data['sun_exposure'],
+            soil_condition=data['soil_condition'],
+            water_conservation=data['water_conservation'],
+        )[:TOP_N]
+
+        payload = {
+            'climate_zone': geo['climate_zone'],
+            'matches': [
+                {**PlantSerializer(r['plant']).data, 'match_score': r['score']}
+                for r in ranked
+            ],
+        }
+
+        cache.set(cache_key, payload, timeout=CACHE_TTL_SECONDS)
+
+        # Persist a session so we can show match history on the dashboard.
+        MatchSession.objects.create(
+            user=request.user,
+            location=data['location'],
+            sun_exposure=data['sun_exposure'],
+            soil_condition=data['soil_condition'],
+            water_conservation=data['water_conservation'],
+            climate_zone=geo['climate_zone'],
+            top_match_count=len(payload['matches']),
+        )
+
+        return Response(payload)

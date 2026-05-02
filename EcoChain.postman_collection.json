@@ -1,0 +1,219 @@
+{
+  "info": {
+    "name": "Eco-Chain API",
+    "description": "End-to-end Postman collection for the Eco-Chain backend.\n\nWorkflow:\n1. Run **Sign Up** (creates user, prints OTP to the Django console)\n2. Copy the OTP from your terminal and run **Verify OTP** — this saves an `access_token` and `refresh_token` to the collection\n3. The remaining requests automatically use `{{access_token}}`\n\nVariables:\n- `baseUrl` — defaults to http://127.0.0.1:8000\n- `access_token` / `refresh_token` — populated automatically after Verify or Login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "eco-chain-collection"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "refresh_token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/signup/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "signup", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amara Okafor\",\n  \"email\": \"amara@example.com\",\n  \"password\": \"StrongPass!23\",\n  \"location\": \"Lagos, Nigeria\"\n}"
+            },
+            "description": "Creates an UNVERIFIED user and emails an OTP. In dev (no SendGrid key) the OTP is printed to the Django console."
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('access_token', data.access);",
+                  "  pm.collectionVariables.set('refresh_token', data.refresh);",
+                  "  console.log('Tokens stored in collection variables');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/verify/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "verify", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"amara@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "description": "Verifies the OTP and activates the account. Replace `123456` with the OTP shown in the Django console."
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/resend-otp/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "resend-otp", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"amara@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('access_token', data.access);",
+                  "  pm.collectionVariables.set('refresh_token', data.refresh);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"amara@example.com\",\n  \"password\": \"StrongPass!23\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('access_token', data.access);",
+                  "  if (data.refresh) pm.collectionVariables.set('refresh_token', data.refresh);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/dashboard/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "dashboard", ""] },
+            "description": "Returns user profile, plants, upcoming care tasks, and aggregated impact stats. Cached per-user for 5 minutes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Green Match",
+      "item": [
+        {
+          "name": "Match Plants — Nairobi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/green-match/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "green-match", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Nairobi, Kenya\",\n  \"sun_exposure\": \"full_sun\",\n  \"soil_condition\": \"loamy\",\n  \"water_conservation\": \"low\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Match Plants — Lagos",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/green-match/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "green-match", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Lagos, Nigeria\",\n  \"sun_exposure\": \"full_sun\",\n  \"soil_condition\": \"lateritic_red_clay\",\n  \"water_conservation\": \"ultra_low\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plants",
+      "item": [
+        {
+          "name": "List My Plants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/user/plants/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "user", "plants", ""] }
+          }
+        },
+        {
+          "name": "Add Plant to My Garden",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/user/plants/", "host": ["{{baseUrl}}"], "path": ["api", "v1", "user", "plants", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plant_id\": \"<paste a plant UUID from Green Match>\",\n  \"nickname\": \"Front yard tree\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Plant Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/plants/<uuid>/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "plants", "<uuid>", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
