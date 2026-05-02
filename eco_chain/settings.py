@@ -78,9 +78,14 @@ WSGI_APPLICATION = 'eco_chain.wsgi.application'
 
 # ---------------------------------------------------------------------------
 # Database
-# Falls back to SQLite if Postgres credentials are missing — handy for first-run dev.
+# Supports Railway's DATABASE_URL or individual DB_* variables.
+# Falls back to SQLite if neither is set — handy for first-run dev.
 # ---------------------------------------------------------------------------
-if env('DB_NAME', default='') and env('DB_USER', default=''):
+DATABASE_URL = env('DATABASE_URL', default='')
+
+if DATABASE_URL:
+    DATABASES = {'default': env.db_url('DATABASE_URL')}
+elif env('DB_NAME', default='') and env('DB_USER', default=''):
     DATABASES = {
         'default': {
             'ENGINE': env('DB_ENGINE', default='django.db.backends.postgresql'),
@@ -96,28 +101,6 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
-# ---------------------------------------------------------------------------
-# Cache (Redis). Falls back to local-memory cache if Redis URL absent.
-# ---------------------------------------------------------------------------
-REDIS_URL = env('REDIS_URL', default='')
-if REDIS_URL:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            },
-        }
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'eco-chain-default',
         }
     }
 
