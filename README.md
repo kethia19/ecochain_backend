@@ -51,19 +51,13 @@ Once the server is running, open your browser:
 
 > **Windows users:** Install [Memurai](https://www.memurai.com/get-memurai) for Redis — it runs as a Windows service on port 6379 automatically.
 
-> **Python 3.13 users:** The pinned versions of `Pillow` and `psycopg2-binary` in `requirements.txt` don't have wheels for Python 3.13. Before running `pip install`, upgrade them:
-> ```bash
-> pip install Pillow==10.4.0 psycopg2-binary==2.9.12 --only-binary=:all:
-> ```
-> Then update those two lines in `requirements.txt` to match before continuing.
-
 ---
 
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-org/eco_chain.git
-cd eco_chain
+git clone https://github.com/kethia19/ecochain_backend.git
+cd ecochain_backend
 ```
 
 ### 2. Create and activate a virtual environment
