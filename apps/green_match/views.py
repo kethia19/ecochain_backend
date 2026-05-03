@@ -25,6 +25,9 @@ from .services import enrich_location, score_plants
 
 CACHE_TTL_SECONDS = 60 * 60 * 24  # 24 hours
 TOP_N = 10
+# Plants below this score are filtered out — keeps the response focused on
+# genuinely relevant recommendations rather than padding with weak matches.
+MIN_SCORE = 50
 
 
 class GreenMatchView(APIView):
@@ -71,13 +74,20 @@ class GreenMatchView(APIView):
             sun_exposure=data['sun_exposure'],
             soil_condition=data['soil_condition'],
             water_conservation=data['water_conservation'],
-        )[:TOP_N]
+        )
+
+        # Filter weak matches, then take the top N. If the threshold filters
+        # everything out (e.g. very specific input + small catalogue), fall
+        # back to the top 3 so the user always sees something.
+        strong = [r for r in ranked if r['score'] >= MIN_SCORE][:TOP_N]
+        if not strong:
+            strong = ranked[:3]
 
         payload = {
             'climate_zone': geo['climate_zone'],
             'matches': [
                 {**PlantSerializer(r['plant']).data, 'match_score': r['score']}
-                for r in ranked
+                for r in strong
             ],
         }
 
