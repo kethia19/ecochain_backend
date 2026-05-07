@@ -55,9 +55,7 @@ def resolve_climate_zone(lat: float, lng: float) -> str:
 # ---------------------------------------------------------------------------
 def _geocoder():
     if settings.GOOGLE_MAPS_KEY:
-        logger.info("Using Google Maps geocoder")
         return GoogleV3(api_key=settings.GOOGLE_MAPS_KEY, timeout=10)
-    logger.info("Using Nominatim geocoder (no GOOGLE_MAPS_KEY set)")
     return Nominatim(user_agent='eco-chain-dev', timeout=10)
 
 
@@ -67,37 +65,33 @@ def enrich_location(location_string: str) -> dict:
     Never raises — on failure returns an `unknown` zone with `None` coords
     so the scoring algorithm can still run (just without the climate boost).
     """
-    logger.info("Geocoding location: %r", location_string)
-
     try:
         location = _geocoder().geocode(location_string)
     except GeopyError as e:
-        logger.warning("Geocoding raised GeopyError for %r: %s", location_string, e)
+        logger.warning("Geocoding GeopyError for %r: %s", location_string, e)
         location = None
     except Exception as e:
-        # Network errors, timeouts, etc. that aren't subclasses of GeopyError
-        logger.warning("Geocoding raised %s for %r: %s", type(e).__name__, location_string, e)
+        logger.warning("Geocoding %s for %r: %s", type(e).__name__, location_string, e)
         location = None
 
     if location is None:
-        logger.warning("No geocoding result for %r — returning unknown zone", location_string)
         return {'lat': None, 'lng': None, 'climate_zone': 'unknown'}
 
     lat, lng = location.latitude, location.longitude
-    zone = resolve_climate_zone(lat, lng)
-    logger.info("Geocoded %r → (%.4f, %.4f) → zone=%s", location_string, lat, lng, zone)
-
     return {
         'lat': lat,
         'lng': lng,
-        'climate_zone': zone,
+        'climate_zone': resolve_climate_zone(lat, lng),
     }
 
 
 # ---------------------------------------------------------------------------
 # Scoring
 # ---------------------------------------------------------------------------
-WATER_RANK = {'moderate': 1, 'low': 2, 'ultra_low': 3}
+# Higher rank = more water-conserving. The water-boost rewards plants whose
+# conservation level is at least as high as the user's chosen level (i.e.
+# the plant is no thirstier than what the user is willing to provide).
+WATER_RANK = {'high': 0, 'moderate': 1, 'low': 2, 'ultra_low': 3}
 
 
 def score_plants(plants, *, climate_zone, sun_exposure, soil_condition,

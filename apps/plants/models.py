@@ -14,6 +14,7 @@ class Plant(models.Model):
     """Master plant catalogue — the source of Green Match results."""
 
     class WaterLevel(models.TextChoices):
+        HIGH = 'high', 'High'
         MODERATE = 'moderate', 'Moderate'
         LOW = 'low', 'Low'
         ULTRA_LOW = 'ultra_low', 'Ultra-low'
