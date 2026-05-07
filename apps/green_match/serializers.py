@@ -4,7 +4,7 @@ Green Match serializers — input validation for the request payload.
 from rest_framework import serializers
 
 
-SUN_CHOICES = ['full_sun', 'partial', 'shade']
+SUN_CHOICES = ['full_sun', 'partial_shade', 'shade']
 SOIL_CHOICES = ['lateritic_red_clay', 'loamy', 'sandy', 'clay', 'peat']
 WATER_CHOICES = ['high', 'moderate', 'low', 'ultra_low']
 
