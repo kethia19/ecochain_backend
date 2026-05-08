@@ -67,7 +67,7 @@ class GreenMatchView(APIView):
 
         geo = enrich_location(data['location'])
 
-        plants = list(Plant.objects.all())
+        plants = list(Plant.objects.filter(sun_exposure__contains=[data['sun_exposure']]))
         ranked = score_plants(
             plants,
             climate_zone=geo['climate_zone'],
