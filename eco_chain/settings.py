@@ -172,8 +172,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Eco-Chain API',
     'DESCRIPTION': (
         'REST API for the Eco-Chain regenerative living platform. '
-        'Covers authentication, dashboard aggregation, and the Green Match '
-        'plant recommendation engine.'
+        'Covers authentication, dashboard aggregation, plant management, '
+        'the Green Match recommendation engine, Build Assistant, and Cost Estimator.'
     ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -185,7 +185,13 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Authentication', 'description': 'Sign-up, OTP verification, login, token refresh'},
         {'name': 'Dashboard', 'description': 'Aggregated home screen data'},
         {'name': 'Green Match', 'description': 'Native African plant recommendations'},
+        {'name': 'Plants', 'description': 'Plant catalogue and user plant management'},
+        {'name': 'Build Assistant', 'description': 'Eco-optimised building layout generation and material suggestions'},
+        {'name': 'Cost Estimator', 'description': 'Construction cost estimates, TCO projections, and PDF reports'},
     ],
+    'ENUM_NAME_OVERRIDES': {
+        'CountryEnum': ['NG', 'KE', 'GH', 'ET', 'ZA', 'SN'],
+    },
 }
 
 # ---------------------------------------------------------------------------

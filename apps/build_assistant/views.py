@@ -99,7 +99,7 @@ class SuggestMaterialsView(APIView):
 class LayoutDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(tags=['Build Assistant'], summary='Retrieve a saved layout by ID')
+    @extend_schema(tags=['Build Assistant'], summary='Retrieve a saved layout by ID', responses={200: LayoutSerializer})
     def get(self, request, layout_id):
         layout = get_object_or_404(Layout, id=layout_id, user=request.user)
         return Response(LayoutSerializer(layout).data)
