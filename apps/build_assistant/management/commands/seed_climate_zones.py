@@ -158,6 +158,36 @@ ECO_MATERIALS = [
         'cost_delta_pct': -8.0,
         'suitable_climate_zones': ['equatorial', 'tropical_wet', 'subtropical_coastal'],
     },
+    # Structural walls — new materials from Eco_Materials_Catalogue (May 2026)
+    {
+        'name': 'Rammed Earth',
+        'element_type': 'wall',
+        'description': 'Compacted layers of moist subsoil, gravel, and a small amount of stabiliser, formed between temporary shuttering.',
+        'sustainability_rationale': 'Uses on-site or locally sourced subsoil; near-zero embodied energy; excellent thermal mass reduces cooling loads by up to 30%.',
+        'carbon_score': 0.9,
+        'cost_delta_pct': -20.0,
+        'suitable_climate_zones': ['sahel', 'semi_arid', 'highland', 'equatorial', 'subtropical_coastal', 'tropical_wet'],
+    },
+    # Roofing — new materials from Eco_Materials_Catalogue (May 2026)
+    {
+        'name': 'Solar Roof Tiles',
+        'element_type': 'roof',
+        'description': 'Photovoltaic tiles that replace conventional roofing while generating on-site electricity.',
+        'sustainability_rationale': 'Eliminates separate PV installation; offsets grid electricity over lifetime; reduces dependence on diesel generators common in off-grid areas.',
+        'carbon_score': 5.0,
+        'cost_delta_pct': 40.0,
+        'suitable_climate_zones': ['sahel', 'semi_arid', 'highland', 'subtropical_coastal', 'equatorial'],
+    },
+    # Foundation — new materials from Eco_Materials_Catalogue (May 2026)
+    {
+        'name': 'Green Cement LC3',
+        'element_type': 'foundation',
+        'description': 'Limestone Calcined Clay Cement (LC3) — blends calcined clay and limestone to replace up to 50% of clinker.',
+        'sustainability_rationale': 'Cuts CO2 emissions by ~40% vs OPC; raw materials (clay, limestone) are abundant across Africa; same strength class as OPC 42.5.',
+        'carbon_score': 3.5,
+        'cost_delta_pct': -8.0,
+        'suitable_climate_zones': ['sahel', 'semi_arid', 'highland', 'equatorial', 'subtropical_coastal', 'tropical_wet'],
+    },
     # Insulation
     {
         'name': 'Coconut Fibre Insulation',

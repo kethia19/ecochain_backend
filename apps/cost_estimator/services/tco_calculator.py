@@ -6,28 +6,40 @@ Compares eco build against a conventional equivalent and computes:
   - Maintenance savings from durable local materials
   - Payback period in months
 
-Savings coefficients are per climate zone and validated against regional
-case studies. The Data Team will refine these constants as new studies land.
+Coefficients updated May 2026 from Eco_Housing_Expanded.xlsx (Operational_Savings sheet).
+Baseline electricity converted from monthly local currency using mid-2026 exchange rates.
 """
 from decimal import Decimal
 from apps.build_assistant.models import Layout
 
-# Annual electricity saving (% of baseline) by climate zone for passive design
+# Annual electricity saving (% of baseline) by climate zone for passive design.
+# Source: Operational_Savings sheet — country-to-zone mapping:
+#   tropical_wet / equatorial → Nigeria (32%) + Ghana (30%) avg
+#   semi_arid → Kenya (28%), highland → Ethiopia (24%)
+#   subtropical_coastal → South Africa (26%), sahel → Senegal (29%)
 _PASSIVE_COOLING_SAVING_PCT = {
-    'sahel': 0.35,
-    'equatorial': 0.28,
-    'subtropical_coastal': 0.22,
-    'semi_arid': 0.32,
-    'highland': 0.15,
-    'tropical_wet': 0.25,
+    'sahel': 0.29,
+    'equatorial': 0.31,
+    'subtropical_coastal': 0.26,
+    'semi_arid': 0.28,
+    'highland': 0.24,
+    'tropical_wet': 0.32,
 }
 
-# Average annual household electricity cost (USD) by country — baseline for conventional build
+# Average annual household electricity cost (USD) by country.
+# Source: monthly local-currency baselines from Operational_Savings sheet,
+# converted at mid-2026 rates (NGN 1600, GHS 15, KES 130, ETB 115, ZAR 18, XOF 600).
 _BASELINE_ELECTRICITY_USD = {
-    'NG': 480, 'KE': 540, 'GH': 420, 'ET': 300, 'ZA': 720, 'SN': 380,
+    'NG': 713,   # 95,000 NGN/mo × 12 ÷ 1600
+    'GH': 576,   # 720 GHS/mo × 12 ÷ 15
+    'KE': 1292,  # 14,000 KES/mo × 12 ÷ 130
+    'ET': 990,   # 9,500 ETB/mo × 12 ÷ 115
+    'ZA': 1733,  # 2,600 ZAR/mo × 12 ÷ 18
+    'SN': 1160,  # 58,000 XOF/mo × 12 ÷ 600
 }
 
-# Rainwater harvesting annual saving (USD) — assumes 2,000L/year capture vs mains supply
+# Rainwater harvesting annual saving (USD) — assumes 2,000L/year capture vs mains supply.
+# TODO: replace with water-cost-derived figures once water tariff data is available.
 _RAINWATER_SAVING_USD = {
     'NG': 80, 'KE': 120, 'GH': 70, 'ET': 60, 'ZA': 150, 'SN': 65,
 }
