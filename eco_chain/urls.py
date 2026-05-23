@@ -17,6 +17,8 @@ urlpatterns = [
     path('api/v1/dashboard/', include('apps.dashboard.urls')),
     path('api/v1/green-match/', include('apps.green_match.urls')),
     path('api/v1/', include('apps.plants.urls')),
+    path('api/v1/', include('apps.build_assistant.urls')),
+    path('api/v1/', include('apps.cost_estimator.urls')),
 
     # OpenAPI schema + interactive docs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

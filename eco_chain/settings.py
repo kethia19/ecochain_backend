@@ -24,6 +24,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 # Apps
 # ---------------------------------------------------------------------------
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party
+    'channels',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -43,6 +45,8 @@ INSTALLED_APPS = [
     'apps.impact',
     'apps.dashboard',
     'apps.green_match',
+    'apps.build_assistant',
+    'apps.cost_estimator',
 ]
 
 MIDDLEWARE = [
@@ -75,6 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'eco_chain.wsgi.application'
+ASGI_APPLICATION = 'eco_chain.asgi.application'
 
 # ---------------------------------------------------------------------------
 # Database
@@ -205,6 +210,31 @@ if SENDGRID_API_KEY:
 else:
     # In dev we just print emails to the console so OTPs are visible.
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ---------------------------------------------------------------------------
+# Redis cache + Channel Layers
+# ---------------------------------------------------------------------------
+REDIS_URL = env('REDIS_URL', default='redis://127.0.0.1:6379/1')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'IGNORE_EXCEPTIONS': True,
+        },
+    }
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Third-party API keys

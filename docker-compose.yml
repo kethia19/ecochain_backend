@@ -22,7 +22,9 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py seed_plants &&
-             gunicorn eco_chain.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"
+             python manage.py seed_climate_zones &&
+             python manage.py seed_pricing &&
+             daphne -b 0.0.0.0 -p 8000 eco_chain.asgi:application"
     volumes:
       - .:/app
     ports:
