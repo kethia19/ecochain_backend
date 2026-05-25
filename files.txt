@@ -1,0 +1,4 @@
+ml_service.py — plant prediction ML model (reads EastAfricaRegionCleaned.xlsx)
+ai_service.py — layout generation, material suggestions, TCO projection (reads Eco_Housing_Expanded.xlsx + Scalable_Eco_Housing_Cost_Model101.xlsx)
+views.py — Django views for all 5 endpoints
+urls.py — URL routing

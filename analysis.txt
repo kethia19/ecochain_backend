@@ -1,0 +1,26 @@
+﻿=== COUNTRY CODE MAPPING ===
+  Nigeria -> NG
+  Ghana -> GH
+  Kenya -> KE
+  Ethiopia -> ET
+  South Africa -> ZA
+  Senegal -> SN
+
+=== LABOUR: KEY UPDATES (Mid-band, first-set data) ===
+  NG mason: 6500 -> 18000 NGN
+  NG carpenter: 7500 -> 20000 NGN
+  NG plumber: 9000 -> 22000 NGN
+  NG electrician: 9500 -> 27900 NGN
+  KE carpenter: 2000 -> 3500 KES
+  ET plumber: 950 -> 1200 ETB
+  SN carpenter: 6000 -> 18000 XOF
+
+=== MATERIAL CONVERSIONS ===
+  Bamboo Panels: already per sqm -> finishing category
+  Laterite Blocks: 100pcs / 8 = sqm -> wall category
+  Roofing Sheets: bundle / 9 = sqm -> roof category
+
+=== NEGATIVE PRICES TO SKIP ===
+  ZA Johannesburg Cement: -70
+  ZA Cape Town Cement: -135
+  ZA Cape Town Bamboo: -31

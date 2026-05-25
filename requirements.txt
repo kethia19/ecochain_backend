@@ -40,3 +40,19 @@ gunicorn==22.0.0
 
 # Dev / utilities
 Pillow==10.4.0
+
+# EcoChain Housing — AI/ML Team Dependencies
+
+# ML model (Green Match)
+scikit-learn>=1.4.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+numpy>=1.24.0
+
+# AI engine (Build Assistant + Cost Estimator)
+groq>=0.9.0
+
+# Image search (optional — plant photos in API response)
+duckduckgo-search>=6.0.0
+Pillow>=10.0.0
+requests>=2.31.0

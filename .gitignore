@@ -25,3 +25,6 @@ media/
 
 # Logs
 *.log
+
+#Files
+EcoChain API key.txt
