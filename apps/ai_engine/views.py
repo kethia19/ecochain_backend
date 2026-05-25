@@ -5,28 +5,6 @@ Team:    AI/ML (Group 15)
 File:    apps/ai_engine/views.py
 
 Wires all AI/ML functions to DRF endpoints.
-
-Endpoints covered
------------------
-POST /api/v1/green-match/          → GreenMatchView       (ml_service)
-GET  /api/v1/green-match/status/   → GreenMatchStatusView (ml_service)
-POST /api/v1/layout/generate       → LayoutGenerateView   (ai_service)
-POST /api/v1/materials/suggest     → MaterialSuggestView  (ai_service)
-POST /api/v1/cost/tco-projection   → TCOProjectionView    (ai_service)
-
-Backend team — add to eco_chain/urls.py:
-    path('api/v1/', include('apps.ai_engine.urls')),
-
-Create apps/ai_engine/urls.py:
-    from django.urls import path
-    from . import views
-    urlpatterns = [
-        path('green-match/',         views.GreenMatchView.as_view()),
-        path('green-match/status/',  views.GreenMatchStatusView.as_view()),
-        path('layout/generate',      views.LayoutGenerateView.as_view()),
-        path('materials/suggest',    views.MaterialSuggestView.as_view()),
-        path('cost/tco-projection',  views.TCOProjectionView.as_view()),
-    ]
 """
 
 import hashlib
@@ -38,6 +16,7 @@ from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from .ml_service import predict_plants, model_is_ready
 from .ai_service import generate_layout, suggest_materials, generate_tco_projection, estimate_cost_standalone
@@ -122,6 +101,7 @@ class GreenMatchView(APIView):
     """POST /api/v1/green-match/ — plant prediction using ML model."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Green Match'], request=GreenMatchSerializer)
     def post(self, request):
         s = GreenMatchSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -150,6 +130,7 @@ class GreenMatchStatusView(APIView):
     """GET /api/v1/green-match/status/ — check if ML model is loaded."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Green Match'])
     def get(self, request):
         ready = model_is_ready()
         return Response({
@@ -162,6 +143,7 @@ class LayoutGenerateView(APIView):
     """POST /api/v1/layout/generate — AI eco-layout generation."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Build Assistant'], request=LayoutSerializer)
     def post(self, request):
         s = LayoutSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -189,6 +171,7 @@ class MaterialSuggestView(APIView):
     """POST /api/v1/materials/suggest — AI eco material suggestions."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Build Assistant'], request=MaterialSerializer)
     def post(self, request):
         s = MaterialSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -216,6 +199,7 @@ class TCOProjectionView(APIView):
     """POST /api/v1/cost/tco-projection — 5-year savings projection."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Cost Estimator'], request=TCOSerializer)
     def post(self, request):
         s = TCOSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -277,6 +261,7 @@ class StandaloneEstimateView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=['Cost Estimator'], request=StandaloneEstimateSerializer)
     def post(self, request):
         s = StandaloneEstimateSerializer(data=request.data)
         s.is_valid(raise_exception=True)

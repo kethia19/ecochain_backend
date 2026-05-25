@@ -20,8 +20,8 @@ from .views import (
 
 urlpatterns = [
     # Green Match — ML plant prediction
-    path("green-match/",        GreenMatchView.as_view(),       name="ai-green-match"),
-    path("green-match/status/", GreenMatchStatusView.as_view(), name="ai-green-match-status"),
+    # path("green-match/",        GreenMatchView.as_view(),       name="ai-green-match"),
+    # path("green-match/status/", GreenMatchStatusView.as_view(), name="ai-green-match-status"),
 
     # Build Assistant — AI layout + materials
     path("layout/generate",     LayoutGenerateView.as_view(),   name="ai-layout-generate"),
