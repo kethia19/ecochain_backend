@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.green_match',
     'apps.build_assistant',
     'apps.cost_estimator',
+    'apps.saved_recommendations',
 ]
 
 MIDDLEWARE = [
@@ -188,6 +189,7 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Plants', 'description': 'Plant catalogue and user plant management'},
         {'name': 'Build Assistant', 'description': 'Eco-optimised building layout generation and material suggestions'},
         {'name': 'Cost Estimator', 'description': 'Construction cost estimates, TCO projections, and PDF reports'},
+        {'name': 'Saved Recommendations', 'description': 'Save and retrieve user-saved build layouts and cost estimates'},
     ],
     'ENUM_NAME_OVERRIDES': {
         'CountryEnum': ['NG', 'KE', 'GH', 'ET', 'ZA', 'SN'],
