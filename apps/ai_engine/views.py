@@ -54,12 +54,12 @@ class GreenMatchSerializer(serializers.Serializer):
 
 
 class LayoutSerializer(serializers.Serializer):
-    bedrooms     = serializers.IntegerField(min_value=1, max_value=6)
-    climate_zone = serializers.ChoiceField(choices=CLIMATE_ZONES)
-    style        = serializers.ChoiceField(choices=["modern", "traditional"])
-    orientation  = serializers.ChoiceField(choices=["north", "south", "east", "west"])
-    lot_size_sqm = serializers.FloatField(min_value=40, max_value=2000, default=120)
-    budget_usd   = serializers.FloatField(required=False, allow_null=True)
+    bedrooms     = serializers.IntegerField(min_value=1, max_value=20)
+    climate_zone = serializers.CharField(max_length=100)
+    style        = serializers.CharField(max_length=100)
+    orientation  = serializers.CharField(max_length=20)
+    lot_size_sqm = serializers.FloatField(min_value=20, max_value=10000, default=120, required=False)
+    budget_usd   = serializers.FloatField(required=False, allow_null=True, default=None)
 
 
 class MaterialSerializer(serializers.Serializer):
