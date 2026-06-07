@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.build_assistant',
     'apps.cost_estimator',
     'apps.saved_recommendations',
+    'apps.ecoscore',
 ]
 
 MIDDLEWARE = [
@@ -190,6 +191,10 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Build Assistant', 'description': 'Eco-optimised building layout generation and material suggestions'},
         {'name': 'Cost Estimator', 'description': 'Construction cost estimates, TCO projections, and PDF reports'},
         {'name': 'Saved Recommendations', 'description': 'Save and retrieve user-saved build layouts and cost estimates'},
+        {'name': 'EcoScore',         'description': 'Calculate property EcoScore (0–100), rating band, carbon reduction, and badges — POST /api/v1/ecoscore/calculate'},
+        {'name': 'Maintenance',      'description': 'Maintenance analytics — compliance scores, priority breakdown, urgent tasks'},
+        {'name': 'Education Hub',    'description': 'Personalised eco-housing learning content recommendations'},
+        {'name': 'House Generation', 'description': 'AI-generated house designs with cost breakdown and Pollinations-rendered images'},
     ],
     'ENUM_NAME_OVERRIDES': {
         'CountryEnum': ['NG', 'KE', 'GH', 'ET', 'ZA', 'SN'],

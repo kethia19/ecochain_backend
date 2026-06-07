@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/v1/', include('apps.build_assistant.urls')),
     path('api/v1/', include('apps.cost_estimator.urls')),
     path('api/v1/', include('apps.saved_recommendations.urls')),
+    path('api/v1/', include('apps.ecoscore.urls')),
 
     # OpenAPI schema + interactive docs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

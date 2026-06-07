@@ -4,8 +4,8 @@ EcoChain Housing — AI Engine Service
 Team:    AI/ML (Group 15)
 File:    apps/ai_engine/ai_service.py
 Datasets:
-    Eco_Housing_Expanded.xlsx          → real market prices (suggest_materials, tco)
-    Scalable_Eco_Housing_Cost_Model101.xlsx → eco ratings & costs (suggest_materials)
+    data/housing/Eco_Housing_Expanded.xlsx          → real market prices (suggest_materials, tco)
+    data/housing/Scalable_Eco_Housing_Cost_Model101.xlsx → eco ratings & costs (suggest_materials)
 
 Sprint tasks covered
 ---------------------
@@ -17,8 +17,8 @@ Setup
 -----
 Add to .env:
     GROQ_API_KEY=gsk_...
-    HOUSING_DATA_PATH=C:/dev/agit/Eco_Housing_Expanded.xlsx
-    COST_MODEL_PATH=C:/dev/agit/Scalable_Eco_Housing_Cost_Model101.xlsx
+    HOUSING_DATA_PATH=/abs/path/to/data/housing/Eco_Housing_Expanded.xlsx
+    COST_MODEL_PATH=/abs/path/to/data/housing/Scalable_Eco_Housing_Cost_Model101.xlsx
 
 Install:
     pip install groq pandas openpyxl
@@ -27,6 +27,7 @@ Install:
 import json
 import logging
 import os
+from pathlib import Path
 import re
 
 import pandas as pd
@@ -43,13 +44,15 @@ MODEL   = "llama-3.3-70b-versatile"
 # ---------------------------------------------------------------------------
 # Load pricing datasets at startup
 # ---------------------------------------------------------------------------
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+
 _HOUSING_PATH = os.environ.get(
     "HOUSING_DATA_PATH",
-    "Eco_Housing_Expanded.xlsx",
+    str(_DATA_DIR / "housing" / "Eco_Housing_Expanded.xlsx"),
 )
 _COST_PATH = os.environ.get(
     "COST_MODEL_PATH",
-    "Scalable_Eco_Housing_Cost_Model101.xlsx",
+    str(_DATA_DIR / "housing" / "Scalable_Eco_Housing_Cost_Model101.xlsx"),
 )
 
 try:

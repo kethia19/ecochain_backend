@@ -1,99 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, serializers
 from django.shortcuts import get_object_or_404
-from django.core.cache import cache
 
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema
 
 from .models import ClimateZone, Layout
 from .serializers import (
-    LayoutGenerateInputSerializer,
     LayoutSerializer,
     LayoutUpdateSerializer,
-    MaterialSuggestInputSerializer,
-    MaterialSuggestResponseSerializer,
     ClimateZoneSerializer,
 )
-from .services import generate_layout, suggest_eco_materials
-
-
-class GenerateLayoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        tags=['Build Assistant'],
-        summary='Generate an optimised building layout',
-        description=(
-            'Accepts user preferences and returns a layout JSON with rooms, '
-            'ventilation paths, passive features, and an eco score. '
-            'The layout is persisted and its ID can be passed to the Cost Estimator.'
-        ),
-        request=LayoutGenerateInputSerializer,
-        responses={201: LayoutSerializer},
-        examples=[
-            OpenApiExample(
-                'Sahel 3-bedroom modern',
-                value={'bedrooms': 3, 'climate_zone': 'sahel', 'style': 'modern', 'orientation': 'south'},
-                request_only=True,
-            ),
-        ],
-    )
-    def post(self, request):
-        ser = LayoutGenerateInputSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        data = ser.validated_data
-
-        layout_data = generate_layout(data)
-        layout = Layout.objects.create(
-            user=request.user,
-            bedrooms=data['bedrooms'],
-            climate_zone=data['climate_zone'],
-            style=data['style'],
-            orientation=data['orientation'],
-            layout_json=layout_data['layout_json'],
-            eco_score=layout_data['eco_score'],
-            total_area_sqm=layout_data['total_area_sqm'],
-        )
-        return Response(LayoutSerializer(layout).data, status=status.HTTP_201_CREATED)
-
-
-class SuggestMaterialsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        tags=['Build Assistant'],
-        summary='Suggest eco-friendly materials for a building element',
-        description=(
-            'Returns up to 4 eco material alternatives for the given element type '
-            'and climate zone, each with a cost delta, carbon score, and a '
-            'contextual prompt the frontend can surface to the user.'
-        ),
-        request=MaterialSuggestInputSerializer,
-        responses={200: MaterialSuggestResponseSerializer},
-        examples=[
-            OpenApiExample(
-                'Wall materials for Sahel',
-                value={'element_type': 'wall', 'climate_zone': 'sahel'},
-                request_only=True,
-            ),
-        ],
-    )
-    def post(self, request):
-        ser = MaterialSuggestInputSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        data = ser.validated_data
-
-        cache_key = f'mat_suggest:{data["element_type"]}:{data["climate_zone"]}'
-        cached = cache.get(cache_key)
-        if cached:
-            return Response(cached)
-
-        suggestions = suggest_eco_materials(data['element_type'], data['climate_zone'])
-        payload = {'suggestions': suggestions}
-        cache.set(cache_key, payload, timeout=3600)
-        return Response(payload)
+from .image_service import generate_house_images, VALID_STYLES
 
 
 class LayoutDetailView(APIView):
@@ -129,3 +48,41 @@ class ClimateZonesView(APIView):
     def get(self, request):
         zones = ClimateZone.objects.all()
         return Response(ClimateZoneSerializer(zones, many=True).data)
+
+
+class GenerateImagesInputSerializer(serializers.Serializer):
+    style    = serializers.ChoiceField(choices=VALID_STYLES)
+    country  = serializers.CharField(max_length=100)
+    bedrooms = serializers.IntegerField(min_value=1, max_value=10)
+
+
+class GenerateImagesView(APIView):
+    """
+    POST /api/v1/layout/generate-images
+
+    Generates ONE exterior and ONE interior render for the requested house
+    via Pollinations AI (no API key required, free service).
+
+    Response time: 1–2 minutes on cache miss (2 image API calls).
+    Results are cached for 6 hours — identical inputs return instantly.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=['Build Assistant'],
+        summary='Generate exterior + interior house renders',
+        request=GenerateImagesInputSerializer,
+    )
+    def post(self, request):
+        ser = GenerateImagesInputSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+
+        try:
+            result = generate_house_images(**ser.validated_data)
+        except RuntimeError as exc:
+            return Response(
+                {"detail": str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response(result)

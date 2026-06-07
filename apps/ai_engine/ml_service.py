@@ -3,14 +3,14 @@ EcoChain Housing — Green Match ML Service
 ==========================================
 Team:    AI/ML (Group 15)
 File:    apps/ai_engine/ml_service.py
-Dataset: EastAfricaRegionCleaned.xlsx
+Dataset: data/plants/EastAfricaRegionCleaned.xlsx
 
 Django endpoint: POST /api/v1/green-match/
 
 Setup
 -----
-Add to .env:
-    PLANT_DATA_PATH=C:/.../EastAfricaRegionCleaned.xlsx
+Add to .env (only needed to override the default path):
+    PLANT_DATA_PATH=/abs/path/to/data/plants/EastAfricaRegionCleaned.xlsx
 
 Install:
     pip install scikit-learn pandas openpyxl numpy
@@ -18,6 +18,7 @@ Install:
 
 import logging
 import os
+from pathlib import Path
 import warnings
 
 import pandas as pd
@@ -35,9 +36,11 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+
 DATA_PATH = os.environ.get(
     "PLANT_DATA_PATH",
-    "EastAfricaRegionCleaned.xlsx",
+    str(_DATA_DIR / "plants" / "EastAfricaRegionCleaned.xlsx"),
 )
 
 FEATURES = [
