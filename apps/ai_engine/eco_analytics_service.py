@@ -135,6 +135,15 @@ def get_maintenance_insights() -> dict:
     }
 
 
+def _clean_df(df):
+    """Strip trailing/leading whitespace from column names and all string values."""
+    df = df.copy()
+    df.columns = df.columns.str.strip()
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].str.strip()
+    return df
+
+
 def recommend_content(user_id: str, top_n: int = 5) -> list:
     """
     Return personalised content recommendations for a user.
@@ -151,54 +160,59 @@ def recommend_content(user_id: str, top_n: int = 5) -> list:
     if _CONTENT_LIBRARY.empty:
         raise RuntimeError("Education dataset not loaded. Check EDUCATION_DATA_PATH.")
 
-    content_df = _CONTENT_LIBRARY.copy()
-    user_df    = _USER_ACTIVITY.copy()
-    cat_df     = _CONTENT_CATS.copy()
+    # Strip all column names and string cell values (Excel files often have trailing spaces)
+    content_df = _clean_df(_CONTENT_LIBRARY)
+    user_df    = _clean_df(_USER_ACTIVITY)
 
-    def _find(df, *kws):
-        low = {c.lower().replace(" ", "_"): c for c in df.columns}
-        for kw in kws:
-            if kw in low:
-                return low[kw]
+    # Detect columns by exact or partial lowercased match after cleaning
+    def _find_col(df, *candidates):
+        lower_map = {c.lower(): c for c in df.columns}
+        for c in candidates:
+            if c.lower() in lower_map:
+                return lower_map[c.lower()]
+        # fallback: substring match
+        for c in candidates:
+            match = next((orig for orig in df.columns if c.lower() in orig.lower()), None)
+            if match:
+                return match
         return None
 
-    content_id_col    = _find(content_df, "content_id", "id")
-    cat_id_in_content = _find(content_df, "category_id", "cat_id")
-    title_col         = _find(content_df, "title", "content_title")
-    diff_col          = _find(content_df, "difficulty_level", "difficulty")
+    content_id_col = _find_col(content_df, "content_id", "id")
+    title_col      = _find_col(content_df, "title")
+    cat_col        = _find_col(content_df, "category")  # holds the category name directly
+    diff_col       = _find_col(content_df, "difficulty_level", "difficulty")
 
-    cat_id_in_cat  = _find(cat_df, "category_id", "cat_id")
-    cat_name_col   = _find(cat_df, "category_name", "name")
+    user_id_col  = _find_col(user_df, "user_id")
+    user_cid_col = _find_col(user_df, "content_id")
 
-    user_id_col         = _find(user_df, "user_id", "id")
-    user_content_id_col = _find(user_df, "content_id", "id")
-
+    # Items already seen/completed by this user
     completed = []
-    if user_id_col and user_content_id_col and not user_df.empty:
-        completed = user_df[user_df[user_id_col] == user_id][user_content_id_col].tolist()
+    if user_id_col and user_cid_col and not user_df.empty:
+        completed = user_df[user_df[user_id_col] == user_id][user_cid_col].tolist()
 
-    available = (content_df[~content_df[content_id_col].isin(completed)].copy()
-                 if content_id_col and completed else content_df.copy())
+    available = (
+        content_df[~content_df[content_id_col].isin(completed)].copy()
+        if content_id_col and completed
+        else content_df.copy()
+    )
 
     if available.empty:
         return [{"message": "You've completed all available content!"}]
 
-    if cat_id_in_content and cat_id_in_cat and cat_name_col and not cat_df.empty:
-        available    = available.merge(cat_df[[cat_id_in_cat, cat_name_col]],
-                                       left_on=cat_id_in_content, right_on=cat_id_in_cat, how="left")
-        cat_col_final = cat_name_col
-    else:
-        available["category_name"] = "General"
-        cat_col_final = "category_name"
-
+    # Beginner-first scoring — case-insensitive (values may come from Excel mixed case)
+    available = available.copy()
     available["_rank"] = 3.0
     if diff_col:
-        diff_map = {"Beginner": 1, "Intermediate": 0, "Advanced": -0.5}
-        available["_rank"] += available[diff_col].map(diff_map).fillna(0)
+        diff_map = {"beginner": 1, "intermediate": 0, "advanced": -0.5}
+        available["_rank"] += (
+            available[diff_col].str.lower().map(diff_map).fillna(0)
+        )
 
-    cols = [c for c in [content_id_col, title_col, cat_col_final, diff_col] if c]
-    return (available[cols + ["_rank"]]
-            .sort_values("_rank", ascending=False)
-            .head(top_n)
-            .drop(columns=["_rank"])
-            .to_dict("records"))
+    cols = [c for c in [content_id_col, title_col, cat_col, diff_col] if c]
+    return (
+        available[cols + ["_rank"]]
+        .sort_values("_rank", ascending=False)
+        .head(top_n)
+        .drop(columns=["_rank"])
+        .to_dict("records")
+    )
